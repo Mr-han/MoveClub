@@ -157,6 +157,7 @@
 <script setup>
 import { ref, inject } from 'vue'
 import { loginWithGoogle, login, resetPassword } from '../api/auth'
+import { getErrorMessage } from '@/utils/error'
 import { useRouter, useRoute } from 'vue-router'
 
 const username = ref('')
@@ -173,26 +174,33 @@ function togglePassword() {
 
 async function handleLogin() {
   loading.value = true
-  const result = await login(username.value, password.value)
-  if (result.success) {
-    error.value = ''
-    alert.value.show('Login successful!', 'success')
-    const redirectTo = route.query.redirect || '/'
-    router.push(redirectTo)
-  } else {
-    console.log(result.error)
-    error.value = 'Email or password is incorrect!'
+  try {
+    const result = await login(username.value, password.value)
+    if (result.success) {
+      error.value = ''
+      alert.value.show('Login successful!', 'success')
+      const redirectTo = route.query.redirect || '/'
+      router.push(redirectTo)
+    } else {
+      error.value = getErrorMessage(result.error, 'Email or password is incorrect!')
+    }
+  } finally {
+    loading.value = false
   }
-  loading.value = false
 }
 async function handleGoogleLogin() {
-  const result = await loginWithGoogle()
-  if (result.success) {
-    const redirectTo = route.query.redirect || '/'
-    router.push(redirectTo)
-  } else {
-    console.log(result.error)
-    error.value = 'Google login authorization error!'
+  loading.value = true
+  try {
+    const result = await loginWithGoogle()
+    if (result.success) {
+      error.value = ''
+      const redirectTo = route.query.redirect || '/'
+      router.push(redirectTo)
+    } else {
+      error.value = getErrorMessage(result.error, 'Google login authorization error!')
+    }
+  } finally {
+    loading.value = false
   }
 }
 async function handleResetPassword() {

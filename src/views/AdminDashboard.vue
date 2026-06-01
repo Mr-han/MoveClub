@@ -101,12 +101,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, inject, onMounted } from 'vue'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import InputText from 'primevue/inputtext'
 import Dropdown from 'primevue/dropdown'
 import { showLoading, hideLoading } from '@/utils/loading'
+import { getErrorMessage } from '@/utils/error'
 import { EventService } from '@/api/event'
 import { UserService } from '@/api/user'
 import { iconOptions } from '@/config'
@@ -115,6 +116,7 @@ const events = ref([])
 const users = ref([])
 const metricsCards = ref([])
 const charts = ref([])
+const alert = inject('alert')
 
 const eventFilters = ref({ name: '', type: null })
 const userSearch = ref('')
@@ -235,11 +237,22 @@ const initMetrics = (eventsData, usersData) => {
 
 onMounted(async () => {
   showLoading()
-  events.value = await EventService.getAll()
-  users.value = await UserService.getAll()
-  initMetrics(events.value, users.value)
-  initCharts(events.value, users.value)
-  hideLoading()
+
+  try {
+    const [eventsData, usersData] = await Promise.all([EventService.getAll(), UserService.getAll()])
+    events.value = eventsData
+    users.value = usersData
+    initMetrics(eventsData, usersData)
+    initCharts(eventsData, usersData)
+  } catch (error) {
+    events.value = []
+    users.value = []
+    metricsCards.value = []
+    charts.value = []
+    alert.value?.show(getErrorMessage(error, 'Failed to load dashboard data'), 'error')
+  } finally {
+    hideLoading()
+  }
 })
 </script>
 
