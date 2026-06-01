@@ -328,7 +328,7 @@ async function submit() {
       alert.value.show('Created successfully', 'success')
     }
     emit('saved')
-    visible.value = false
+    close()
   } catch (err) {
     console.error(err)
     alert.value.show('Submit failed', 'error')

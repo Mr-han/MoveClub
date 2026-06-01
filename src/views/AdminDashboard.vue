@@ -109,6 +109,7 @@ import Dropdown from 'primevue/dropdown'
 import { showLoading, hideLoading } from '@/utils/loading'
 import { EventService } from '@/api/event'
 import { UserService } from '@/api/user'
+import { iconOptions } from '@/config'
 
 const events = ref([])
 const users = ref([])
@@ -120,10 +121,7 @@ const userSearch = ref('')
 
 const eventTypes = ref([
   { label: 'All', value: null },
-  { label: 'Workshop', value: 'Workshop' },
-  { label: 'Seminar', value: 'Seminar' },
-  { label: 'Conference', value: 'Conference' },
-  { label: 'Meetup', value: 'Meetup' },
+  ...iconOptions.map((option) => ({ label: option.type, value: option.type })),
 ])
 
 const formatDate = (date) => {

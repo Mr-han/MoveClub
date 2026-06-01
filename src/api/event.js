@@ -8,18 +8,25 @@ function callFunction(name, data) {
   return fn(data).then((res) => res.data)
 }
 
+function unwrapCollectionResponse(response, key, errorMessage) {
+  if (response.code !== 200) {
+    if (errorMessage) {
+      console.error(errorMessage, response.message || response)
+    }
+    return []
+  }
+
+  return response.data?.[key] || []
+}
+
 export const EventService = {
   STORAGE_KEY: 'events', // 保留原字段，虽然不再用
 
   // ---------- 获取所有事件 ----------
   getAll() {
-    return callFunction('event-getEvents', {}).then((res) => {
-      if (res.code !== 200) {
-        console.error('Failed to fetch events:', res.message)
-        return []
-      }
-      return res.data?.events || []
-    })
+    return callFunction('event-getEvents', {}).then((res) =>
+      unwrapCollectionResponse(res, 'events', 'Failed to fetch events:'),
+    )
   },
 
   // ---------- 保存/创建事件 ----------
@@ -64,27 +71,21 @@ export const EventService = {
 
   // ---------- 根据 uid 获取事件（支持分页） ----------
   getByUid(uid) {
-    return callFunction('event-getEventsByUid', { uid }).then((res) => {
-      if (res.code !== 200) return []
-      return res.data?.events || []
-    })
+    return callFunction('event-getEventsByUid', { uid }).then((res) =>
+      unwrapCollectionResponse(res, 'events'),
+    )
   },
 
   // ---------- 获取用户已加入的所有事件 ----------
   getJoinedEvents(userId) {
-    return callFunction('event-getJoinedEvents', { userId }).then((res) => {
-      if (res.code !== 200) return []
-      return res.data?.events || []
-    })
+    return callFunction('event-getJoinedEvents', { userId }).then((res) =>
+      unwrapCollectionResponse(res, 'events'),
+    )
   },
 
   getEventParticipants(userId) {
-    return callFunction('event-getEventParticipants', { userId }).then((res) => {
-      if (res.code !== 200) {
-        console.error('Failed to fetch participants:', res)
-        return []
-      }
-      return res.data?.users || []
-    })
+    return callFunction('event-getEventParticipants', { userId }).then((res) =>
+      unwrapCollectionResponse(res, 'users', 'Failed to fetch participants:'),
+    )
   },
 }

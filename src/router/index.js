@@ -14,7 +14,7 @@ const routes = [
     path: '/admin-dashboard',
     name: 'AdminDashboard',
     component: AdminDashboard,
-    meta: { requiresAuth: false, showHeader: true, requireAdmin: true },
+    meta: { requiresAuth: true, showHeader: true, requireAdmin: true },
   },
   {
     path: '/admin-dashborad',

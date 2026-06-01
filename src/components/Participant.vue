@@ -351,6 +351,9 @@ async function loadUsers() {
     const eventSet = new Set()
     users.value.forEach((u) => u.events.forEach((e) => eventSet.add(e)))
     eventsList.value = Array.from(eventSet)
+  } catch (err) {
+    console.error(err)
+    alert.value.show('Failed to load participant data', 'error')
   } finally {
     loading.value = false
   }

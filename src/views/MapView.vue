@@ -46,7 +46,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onBeforeUnmount, onMounted } from 'vue'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { EventService } from '@/api/event'
@@ -112,6 +112,13 @@ onMounted(async () => {
     fitMapToEvents()
     hideLoading()
   })
+})
+
+onBeforeUnmount(() => {
+  if (map) {
+    map.remove()
+    map = null
+  }
 })
 
 const openInGoogleMaps = (event) => {
