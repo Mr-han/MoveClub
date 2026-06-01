@@ -1,0 +1,16 @@
+@import 'tailwindcss';
+@import 'mapbox-gl/dist/mapbox-gl.css';
+
+@layer base {
+  button:hover,
+  a:hover,
+  [role='button']:hover {
+    @apply cursor-pointer;
+  }
+}
+@theme {
+  --color-primary: #4f46e5; /* indigo-600 */
+  --color-secondary: #6366f1; /* indigo-500 */
+  --font-display: 'Inter', sans-serif;
+}
+@custom-variant hover (&:hover);
