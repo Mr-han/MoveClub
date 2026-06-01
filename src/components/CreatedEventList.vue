@@ -105,15 +105,15 @@ async function loadEvents() {
     loading.value = false
   }
 }
-function deleteEvent(id) {
+async function deleteEvent(id) {
   if (confirm('Delete?')) {
     try {
-      EventService.remove(id)
+      await EventService.remove(id)
       events.value = events.value.filter((e) => e.id !== id)
-      alert.value.show('delete successful!', 'success')
+      alert.value.show('Deleted successfully!', 'success')
     } catch (err) {
-      console.log(err)
-      alert.value.show('delete failed!', 'error')
+      console.error(err)
+      alert.value.show('Delete failed!', 'error')
     }
   }
 }
