@@ -16,29 +16,37 @@ import { createPinia } from 'pinia'
 let app
 const pinia = createPinia()
 
+async function syncCurrentUser(user) {
+  const userRef = doc(db, 'users', user.uid)
+  const userDoc = await getDoc(userRef)
+
+  if (!userDoc.exists()) {
+    isAuthenticated.value = false
+    currentUser.value = null
+    return
+  }
+
+  currentUser.value = { uid: user.uid, email: user.email, ...userDoc.data() }
+  isAuthenticated.value = true
+}
+
+function resetAuthState() {
+  isAuthenticated.value = false
+  currentUser.value = null
+}
+
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     try {
-      const userRef = doc(db, 'users', user.uid)
-      const userDoc = await getDoc(userRef)
-      if (userDoc.exists()) {
-        currentUser.value = { uid: user.uid, email: user.email, ...userDoc.data() }
-        isAuthenticated.value = true
-      } else {
-        isAuthenticated.value = false
-        currentUser.value = null
-      }
+      await syncCurrentUser(user)
     } catch (err) {
       console.error('Error fetching user:', err)
-      isAuthenticated.value = false
-      currentUser.value = null
+      resetAuthState()
     }
   } else {
-    isAuthenticated.value = false
-    currentUser.value = null
+    resetAuthState()
   }
 
-  // 🟢 only init once
   if (!app) {
     app = createApp(App)
     app.use(PrimeVue, {

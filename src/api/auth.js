@@ -11,7 +11,15 @@ import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore'
 import { AVATAR } from '@/config'
 
 function generateDefaultAvatar(uid) {
-  return `${AVATAR.baseUrl}` + uid
+  return `${AVATAR.baseUrl}${uid}`
+}
+
+function buildCurrentUser(user, profile) {
+  return {
+    uid: user.uid,
+    email: user.email,
+    ...profile,
+  }
 }
 
 export const isAuthenticated = ref(false)
@@ -24,7 +32,7 @@ export async function register({ name, email, password, gender, role, bio }) {
     const avatar = generateDefaultAvatar(user.uid)
     await setDoc(doc(db, 'users', user.uid), { name, email, gender, role, bio, avatar })
 
-    currentUser.value = { uid: user.uid, email: user.email, name, gender, role, bio, avatar }
+    currentUser.value = buildCurrentUser(user, { name, gender, role, bio, avatar })
     isAuthenticated.value = true
     return { success: true, error: null }
   } catch (error) {
@@ -50,19 +58,9 @@ export async function login(email, password) {
       }
       await setDoc(userRef, defaultProfile)
 
-      currentUser.value = {
-        uid: user.uid,
-        email: user.email,
-        name: user.displayName,
-        ...defaultProfile,
-      }
+      currentUser.value = buildCurrentUser(user, defaultProfile)
     } else {
-      currentUser.value = {
-        uid: user.uid,
-        email: user.email,
-        name: user.displayName,
-        ...userDoc.data(),
-      }
+      currentUser.value = buildCurrentUser(user, userDoc.data())
     }
     isAuthenticated.value = true
     return { success: true, error: null }
@@ -89,18 +87,12 @@ export async function loginWithGoogle() {
       }
       await setDoc(userRef, defaultProfile)
 
-      currentUser.value = {
-        uid: user.uid,
-        ...defaultProfile,
-      }
+      currentUser.value = buildCurrentUser(user, defaultProfile)
     } else {
-      currentUser.value = {
-        uid: user.uid,
-        email: user.email,
-        name: user.displayName,
+      currentUser.value = buildCurrentUser(user, {
         avatar: user.photoURL,
         ...userDoc.data(),
-      }
+      })
     }
     isAuthenticated.value = true
     return { success: true, error: null }
