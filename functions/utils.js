@@ -8,7 +8,6 @@ const { onCall } = require('firebase-functions/v2/https')
  */
 function wrapOnCall(handler, requireAuth = true, requireAdmin = false) {
   return onCall({ region: 'asia-southeast1', memory: '512MB' }, async (request) => {
-    console.log('++++++++++++++', request)
     try {
       if (requireAuth && !request.auth) {
         return {
@@ -18,6 +17,14 @@ function wrapOnCall(handler, requireAuth = true, requireAdmin = false) {
         }
       }
       if (requireAdmin) {
+        if (!request.auth) {
+          return {
+            code: 401,
+            message: 'User must be logged in',
+            data: null,
+          }
+        }
+
         const uid = request.auth.uid
         const userDoc = await admin.firestore().collection('users').doc(uid).get()
         const userData = userDoc.data()

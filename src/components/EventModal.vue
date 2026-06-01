@@ -184,6 +184,7 @@
 <script setup>
 import { reactive, ref, defineExpose, inject, nextTick, onBeforeUnmount, watch } from 'vue'
 import { EventService } from '@/api/event'
+import { getErrorMessage } from '@/utils/error'
 import mapboxgl from 'mapbox-gl'
 import { iconOptions } from '@/config'
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder'
@@ -198,14 +199,7 @@ const selectedEventId = ref(null)
 const emit = defineEmits(['saved'])
 const geocoderContainer = ref(null)
 let geocoderInstance = null
-
-const selectedIcon = reactive({
-  icon: 'fas fa-running',
-  bg: 'bg-gradient-to-r from-green-400 to-green-600',
-})
-
-// 表单
-const form = reactive({
+const defaultEventForm = {
   name: '',
   type: 'Sports',
   description: '',
@@ -215,6 +209,16 @@ const form = reactive({
   datetime: '',
   capacity: 10,
   duration: 1,
+}
+
+const selectedIcon = reactive({
+  icon: 'fas fa-running',
+  bg: 'bg-gradient-to-r from-green-400 to-green-600',
+})
+
+// 表单
+const form = reactive({
+  ...defaultEventForm,
 })
 
 // 当 type 变化时，自动选中对应 icon
@@ -255,17 +259,7 @@ function openModal(event = null) {
   } else {
     isEdit.value = false
     selectedEventId.value = null
-    Object.assign(form, {
-      name: '',
-      type: 'Sports',
-      description: '',
-      address: '',
-      latitude: null,
-      longitude: null,
-      datetime: '',
-      capacity: 10,
-      duration: 1,
-    })
+    Object.assign(form, defaultEventForm)
     const matched = iconOptions.find((i) => i.type === 'Sports')
     selectedIcon.icon = matched.icon
     selectedIcon.bg = matched.bg
@@ -330,8 +324,8 @@ async function submit() {
     emit('saved')
     close()
   } catch (err) {
-    console.error(err)
-    alert.value.show('Submit failed', 'error')
+    console.error('Failed to submit event:', err)
+    alert.value.show(getErrorMessage(err, 'Submit failed'), 'error')
   } finally {
     loading.value = false
   }

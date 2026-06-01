@@ -1,67 +1,34 @@
-import { getFunctions, httpsCallable } from 'firebase/functions'
-import { app } from './firebase'
-
-const functions = getFunctions(app, 'asia-southeast1')
-
-function callFunction(name, data) {
-  const fn = httpsCallable(functions, name)
-  return fn(data).then((res) => res.data)
-}
-
-function unwrapCollectionResponse(response, key, errorMessage) {
-  if (response.code !== 200) {
-    if (errorMessage) {
-      console.error(errorMessage, response.message || response)
-    }
-    return []
-  }
-
-  return response.data?.[key] || []
-}
+import { callCallableExpectCollection, callCallableExpectData } from './callable'
 
 export const EventService = {
-  STORAGE_KEY: 'events', // 保留原字段，虽然不再用
-
-  // ---------- 获取所有事件 ----------
   getAll() {
-    return callFunction('event-getEvents', {}).then((res) =>
-      unwrapCollectionResponse(res, 'events', 'Failed to fetch events:'),
-    )
+    return callCallableExpectCollection('event-getEvents', {}, 'events', 'Failed to fetch events')
   },
 
-  // ---------- 保存/创建事件 ----------
   add(event) {
-    // 原 event 对象里可能有 uid、name、type、capacity、address、description
-    return callFunction('event-createEvent', event)
+    return callCallableExpectData('event-createEvent', event, 'Failed to create event')
   },
 
-  // ---------- 更新事件 ----------
   update(event) {
-    // 保留原签名，event 必须包含 id
-    return callFunction('event-updateEvent', event)
+    return callCallableExpectData('event-updateEvent', event, 'Failed to update event')
   },
 
-  // ---------- 删除事件 ----------
   remove(id) {
-    return callFunction('event-deleteEvent', { id })
+    return callCallableExpectData('event-deleteEvent', { id }, 'Failed to delete event')
   },
 
-  // ---------- 添加或更新评分 ----------
   addOrUpdateRating(eventId, rating) {
-    return callFunction('event-rateEvent', { eventId, rating })
+    return callCallableExpectData('event-rateEvent', { eventId, rating }, 'Failed to rate event')
   },
 
-  // ---------- 注册参加者 ----------
   registerParticipant(eventId) {
-    return callFunction('event-joinEvent', { eventId })
+    return callCallableExpectData('event-joinEvent', { eventId }, 'Failed to join event')
   },
 
-  // ---------- 移除参加者 ----------
   removeParticipant(eventId) {
-    return callFunction('event-leaveEvent', { eventId })
+    return callCallableExpectData('event-leaveEvent', { eventId }, 'Failed to leave event')
   },
 
-  // ---------- 计算平均评分 ----------
   averageRating(event) {
     const vals = Object.values(event.ratings || {})
     if (vals.length === 0) return 5
@@ -69,23 +36,20 @@ export const EventService = {
     return +(sum / vals.length).toFixed(1)
   },
 
-  // ---------- 根据 uid 获取事件（支持分页） ----------
   getByUid(uid) {
-    return callFunction('event-getEventsByUid', { uid }).then((res) =>
-      unwrapCollectionResponse(res, 'events'),
-    )
+    return callCallableExpectCollection('event-getEventsByUid', { uid }, 'events')
   },
 
-  // ---------- 获取用户已加入的所有事件 ----------
   getJoinedEvents(userId) {
-    return callFunction('event-getJoinedEvents', { userId }).then((res) =>
-      unwrapCollectionResponse(res, 'events'),
-    )
+    return callCallableExpectCollection('event-getJoinedEvents', { userId }, 'events')
   },
 
   getEventParticipants(userId) {
-    return callFunction('event-getEventParticipants', { userId }).then((res) =>
-      unwrapCollectionResponse(res, 'users', 'Failed to fetch participants:'),
+    return callCallableExpectCollection(
+      'event-getEventParticipants',
+      { userId },
+      'users',
+      'Failed to fetch participants',
     )
   },
 }

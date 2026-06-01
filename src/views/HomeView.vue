@@ -80,8 +80,10 @@ const loadEvents = async () => {
       .sort((a, b) => (b.participants?.length || 0) - (a.participants?.length || 0))
       .slice(0, 6)
   } catch (err) {
-    console.error(err)
+    console.error('Failed to load homepage data:', err)
     events.value = []
+    usersCount.value = 0
+    allEvents.value = []
   } finally {
     loading.value = false
   }

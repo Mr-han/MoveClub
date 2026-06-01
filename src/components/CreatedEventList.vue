@@ -78,6 +78,7 @@ import { ref, onMounted, inject } from 'vue'
 import EventItem from './EventItem.vue'
 import EventModal from './EventModal.vue'
 import { EventService } from '@/api/event'
+import { getErrorMessage } from '@/utils/error'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { useUserStatsStore } from '@/stores/store.js'
 
@@ -100,7 +101,10 @@ async function loadEvents() {
     events.value = (res || []).map(normalizeEvent)
     state.setCreated(events.value.length)
   } catch (err) {
-    console.error(err)
+    console.error('Failed to load created events:', err)
+    events.value = []
+    state.setCreated(0)
+    alert.value.show(getErrorMessage(err, 'Failed to load your events'), 'error')
   } finally {
     loading.value = false
   }
@@ -110,10 +114,11 @@ async function deleteEvent(id) {
     try {
       await EventService.remove(id)
       events.value = events.value.filter((e) => e.id !== id)
+      state.setCreated(events.value.length)
       alert.value.show('Deleted successfully!', 'success')
     } catch (err) {
-      console.error(err)
-      alert.value.show('Delete failed!', 'error')
+      console.error('Failed to delete event:', err)
+      alert.value.show(getErrorMessage(err, 'Delete failed'), 'error')
     }
   }
 }

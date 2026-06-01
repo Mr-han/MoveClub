@@ -213,6 +213,7 @@ import Column from 'primevue/column'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import { EventService } from '@/api/event'
+import { getErrorMessage } from '@/utils/error'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { MailService } from '@/api/mail'
 const alert = inject('alert')
@@ -280,8 +281,8 @@ async function sendBatchEmail() {
     alert.value.show('Email sent successful!', 'success')
     closeEmailModal()
   } catch (err) {
-    console.error(err)
-    alert.value.show('Failed to send email', 'error')
+    console.error('Failed to send batch email:', err)
+    alert.value.show(getErrorMessage(err, 'Failed to send email'), 'error')
   } finally {
     sendingEmail.value = false
   }
@@ -352,8 +353,8 @@ async function loadUsers() {
     users.value.forEach((u) => u.events.forEach((e) => eventSet.add(e)))
     eventsList.value = Array.from(eventSet)
   } catch (err) {
-    console.error(err)
-    alert.value.show('Failed to load participant data', 'error')
+    console.error('Failed to load participant data:', err)
+    alert.value.show(getErrorMessage(err, 'Failed to load participant data'), 'error')
   } finally {
     loading.value = false
   }
